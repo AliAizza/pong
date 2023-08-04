@@ -1,0 +1,64 @@
+.table-classic {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    box-sizing: border-box;
+    border-radius: 30px;
+    border: 4px solid white;
+}
+
+.table-classic::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #E15253, #5699AF);
+    opacity: 0.2;
+    border-radius: 30px;
+}
+
+.table-football {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    box-sizing: border-box;
+    border-radius: 30px;
+    border: 4px solid white;
+}
+
+.table-football::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('../football_map.png') no-repeat center center;
+    background-size: cover;
+    border-radius: 30px;
+}
+
+
+.lineC{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.line {
+    height: 99.4%;
+    border: 2px solid  white;
+    position: absolute;
+    opacity: 0.45;
+}
