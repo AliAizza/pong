@@ -13,6 +13,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
+  private waitingFriend: Socket | null = null;
+
   private waitingRooms: Record<string, Socket | null> = {
     classic: null,
     football: null,
@@ -30,6 +32,35 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (this.waitingRooms[gameMode]?.id === client.id) {
         this.waitingRooms[gameMode] = null;
       }
+    }
+  }
+
+
+  @SubscribeMessage('friends')
+  handleFriendsMode(client: Socket): void {
+    if (this.waitingFriend)
+    {
+      const room = `${this.waitingFriend.id}-${client.id}`;
+      client.join(room);
+      this.waitingFriend.join(room);
+
+      const initialBall: Ball = { pos: {x: 0, y: 0}, speed: 6 / 16, angle: Math.PI / 4 };
+
+      this.rooms[room] = { 
+        ballPos: initialBall.pos, 
+        moveAngle: initialBall.angle, 
+        ballSpeed: initialBall.speed, 
+        intervalId: setInterval(() => this.updateBallPosition(room, initialBall, "classic"), 1000 / 60),
+        players: [{id: this.waitingFriend.id, pos: 0}, {id: client.id, pos: 0}]
+      };
+
+      this.server.to(this.waitingFriend.id).emit('startgame', {room: room, SecondPlayer: 1, chosen: "classic"});
+      this.server.to(client.id).emit('startgame', {room: room, SecondPlayer: 2, chosen: "classic"});
+
+      this.waitingFriend = null;
+    }
+    else {
+      this.waitingFriend = client;
     }
   }
 
@@ -52,7 +83,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         players: [{id: this.waitingRooms[gameMode].id, pos: 0}, {id: client.id, pos: 0}]
       };
 
-      // Notify both clients to start the game
       this.server.to(this.waitingRooms[gameMode].id).emit('startgame', {room: room, SecondPlayer: 1, chosen: gameMode});
       this.server.to(client.id).emit('startgame', {room: room, SecondPlayer: 2, chosen: gameMode});
 
@@ -86,10 +116,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if ((newX < -575 / 16 || newX > 580 / 16)) {
 
       if ((mode === "football" && newY > 10) || (mode === "football" && newY < -10)) {
-        if (newX < -575 / 16)
-          newX = 579 / 16;
-        else if (newX > 580 / 16)
+        if (newX < -575 / 16) {
           newX = -574 / 16;
+          ball.angle = Math.PI - ball.angle;
+        }
+        else if (newX > 580 / 16) {
+          newX = 579 / 16;
+          ball.angle = Math.PI - ball.angle;
+        }
       }
 
       if (newX < -575 / 16) {
